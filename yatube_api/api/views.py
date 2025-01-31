@@ -1,21 +1,17 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, mixins, permissions, viewsets
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import filters, mixins, pagination, permissions, viewsets
+from posts.models import Post, Group, Comment, Follow
+from .serializers import (
+    PostSerializer,
+    GroupSerializer,
+    CommentSerializer,
+    FollowSerializer
+)
+from .permissions import OwnershipPermission
 
-from api.permission import IsAuthorOrReadOnly
-from api.serializers import (CommentSerializer, FollowSerializer,
-                             GroupSerializer, PostSerializer)
-from posts.models import Group, Post
 
-
-class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = LimitOffsetPagination
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+class PermissionViewset(viewsets.ModelViewSet):
+    permission_classes = (OwnershipPermission,)
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
@@ -23,27 +19,43 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = GroupSerializer
 
 
-class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
-
-    def get_post(self):
-        return get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+class PostViewSet(PermissionViewset):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    pagination_class = pagination.LimitOffsetPagination
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, post=self.get_post())
+        return serializer.save(
+            author=self.request.user
+        )
+
+
+class CommentViewSet(PermissionViewset):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
 
     def get_queryset(self):
-        return self.get_post().comments.all()
+        return self.get_post_obj().comments.all()
+
+    def get_post_obj(self):
+        return get_object_or_404(
+            Post,
+            pk=self.kwargs.get('post_pk')
+        )
+
+    def perform_create(self, serializer):
+        return serializer.save(
+            author=self.request.user,
+            post=self.get_post_obj()
+        )
 
 
-class CreateListViewSet(
-    mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet
+class FollowViewSet(
+    viewsets.GenericViewSet,
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin
 ):
-    pass
-
-
-class FollowViewSet(CreateListViewSet):
+    queryset = Follow.objects.all()
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
