@@ -1,74 +1,112 @@
-# Проект API для Yatube
-Проект в виде социальной сети с публикациями, комментариями, группами и подписками.
-
-# Как запустить проект:
-
-Клонировать репозиторий и перейти в него в командной строке:
+# api_yatube
+API для сервиса yatube. Позволяет запрашивать данные о постах, группах и комментариях в социальной сети Yatube, а также управлять ими.
+## Технологии
+Python 3.8, Django 3.2, DRF, JWT + Djoser
+## Как запустить
+1. Клонируем репозиторий и переходим в него в командной строке
 
 ```
-git clone https://github.com/CatGamer7/api_final_yatube.git
+git clone https://github.com/QuiShimo/api_final_yatube.git
 ```
 
 ```
 cd api_final_yatube
 ```
 
-Cоздать и активировать виртуальное окружение:
+2. Создаем и активируем виртуальное окружение
 
 ```
-python3 -m venv .venv
+python -m venv env
 ```
 
 ```
-source .venv/bin/activate
+source env/Scripts/activate
 ```
 
-Установить зависимости из файла requirements.txt:
-
-```
-python -m pip install --upgrade pip
-```
+3. Устанавливаем необходимые зависимости из requirements
 
 ```
 pip install -r requirements.txt
 ```
 
-Выполнить миграции:
+4. Делаем миграции
 
 ```
-python manage.py migrate
+python yatube_api/manage.py migrate
 ```
 
-Запустить проект:
+5. Запускаем проект
 
 ```
-python manage.py runserver
+python yatube_api/manage.py runserver
 ```
-
-# Примеры некоторых запросов:
-P.S. примеры всех запросов можно посмотреть в документации по адресу /redoc/
-
-- Публикация поста
+## Примеры работы с API для всех пользователей
+Для неавторизованных пользователей работа с API доступна только в режиме чтения.
+- Получить список всех публикаций:
 ```
+GET api/v1/posts/
+```
+При указании параметров limit и offset выдача будет работать с пагинацией.
+- Получение публикации по id:
+``` 
+GET api/v1/posts/{id}/
+```
+- Получение списка доступных сообществ:
+```
+GET api/v1/groups/
+```
+- Получение информации о сообществе по id:
+```
+GET api/v1/groups/{id}/
+```
+- Получение всех комментариев к публикации
+```
+GET api/v1/{post_id}/comments/
+``` 
+- Получение комментария к публикации по id:
+```
+GET api/v1/{post_id}/comments/{id}/
+```
+## Примеры работы с API для авторизованных пользователей
+- Создание публикации:
+``` 
 POST /api/v1/posts/
+```
+тело запроса:
+```
 {
-    "text": "string"
+"text": "string",
+"image": "string",
+"group": 0
+}
+```
+- Обновление публикации:
+```
+PUT /api/v1/posts/{id}/
+```
+тело запроса:
+```
+{
+"text": "string",
+"image": "string",
+"group": 0
 }
 ```
 
-- Получение постов постранично
+- Частичное обновление публикации:
 ```
-GET /api/v1/posts/?limit=10&offset=10
+PATCH /api/v1/posts/{id}/
+```
+тело запроса
+```
+{
+"text": "string",
+"image": "string",
+"group": 0
+}
 ```
 
-- Получение всех комменатриев
-
+- Удаление публикации:
 ```
-GET /api/v1/posts/{post_id}/comments/
-```
-
-- Удаление комментария
-
-```
-DEL /api/v1/posts/{post_id}/comments/{comment_id}/
+DEL /api/v1/posts/{id}/
 ```
