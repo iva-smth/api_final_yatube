@@ -37,7 +37,9 @@ cd api_final_yatube
 Создайте виртуальное окружение и активируйте его:
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate
+```
+```bash
+source .venv/Source/activate
 ```
 
 ### 3. Установка зависимостей
